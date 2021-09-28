@@ -1,2 +1,2 @@
 # Snakes-POCs
-Repository concentring some SNAKE's proofs of concept
+Repository grouping some SNAKE's proofs of concept
