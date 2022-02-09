@@ -126,8 +126,8 @@ def main():
 
     # fire transition
     try:
-        #transitions[1].fire(Substitution(username="Username99"))
-        transitions[1].fire(Substitution(username="Username01"))
+        transitions[1].fire(Substitution(username="Username99"))
+        #transitions[1].fire(Substitution(username="Username01"))
     except:
         print("IDOR Attack Detected")
 

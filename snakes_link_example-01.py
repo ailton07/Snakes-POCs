@@ -30,7 +30,7 @@ consumer_response = "response to " + consumer_uri
 
 # References: https://www.ibisc.univ-evry.fr/~fpommereau/SNAKES/index.html
 
-def factory (cons, prod, init_producer_request=[], init_producer_parameter=[]) :
+def factory (input_consumidor, output_consumidor, output_produtor, init_producer_request=[], init_producer_parameter=[]) :
     n = PetriNet("N")
 
     # /2.0/users/{username}
@@ -49,26 +49,32 @@ def factory (cons, prod, init_producer_request=[], init_producer_parameter=[]) :
     n.add_place(Place(producer_response, []))
     # conections
     n.add_input(producer_request, producer_uri, Value(producer_verb_key+producer_uri))
-    n.add_input(producer_parameter, producer_uri, cons)
+    n.add_input(producer_parameter, producer_uri, input_consumidor)
 
     n.add_output(consumer_request, producer_uri, Value(producer_verb_key+consumer_uri))
-    n.add_output(producer_response, producer_uri, cons)
+    n.add_output(producer_response, producer_uri, output_consumidor)
 
     # /2.0/repositories/{username}
     n.add_place(Place(consumer_response, []))
     t1 = Transition(consumer_uri)
     n.add_transition(t1)
     n.add_input(consumer_request, consumer_uri, Value(consumer_verb_key+consumer_uri))
-    n.add_input(producer_response, consumer_uri, cons)
-    n.add_output(consumer_response, consumer_uri, prod)
+    n.add_input(producer_response, consumer_uri, output_consumidor)
+    n.add_output(consumer_response, consumer_uri, output_produtor)
 
     return n, [t0, t1]
 
 # source venv/bin/activate
 # python3 snakes_crAPI-01.py
 def main():
-    # create the petri net
-    net, transitions = factory(Variable("username"), Value("repository"), producer_verb_key+producer_uri, "Username01")
+    # create the petri net without start values
+    net, transitions = factory(Variable("username"), Variable("username"), Value("repository"), [],[])
+    net.draw("value-0.png")
+    import ipdb;
+    ipdb.set_trace()
+
+
+    net, transitions = factory(Value("Me"), Variable("username"), Value("repository"), producer_verb_key+producer_uri, "Me")
     net.draw("value-0.png")
     import ipdb; ipdb.set_trace()
 
@@ -78,7 +84,13 @@ def main():
 
     # given the request-response "/2.0/users/{username}"
     try:
-        transitions[1].fire(Substitution(username="Username99"))
+        transitions[1].fire(Substitution(username="Username01"))
+
+        # transitions[1].fire(Substitution(username="Username99"))
+
+
+
+
     except:
         print("IDOR Attack Detected")
     net.draw("value-2.png")
