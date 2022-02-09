@@ -1,7 +1,7 @@
 import json
 
 class ColouredToken:
-
+    
     def get_dict (self):
         return json.loads(self.json_dict)
 
@@ -18,10 +18,19 @@ class ColouredToken:
 
 
     def get_element_from_dict (self, element):
-        return self.check_if_contains_attribute(self.get_dict(), element)
+        result = self.check_if_contains_attribute(self.get_dict(), element)
+        if result:
+            response = {
+                element : self.check_if_contains_attribute(self.get_dict(), element),
+                'user_id': self.user_id
+                }
+
+            return json.dumps(response)
+
 
     def __init__ (self, value) :
         self.json_dict = json.dumps(value)
+        self.user_id = value.get('user_id')
 
     def __str__ (self) :
         return self.json_dict

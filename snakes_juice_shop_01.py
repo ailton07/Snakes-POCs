@@ -1,7 +1,8 @@
 import json
 from coloured_token import ColouredToken
 from numpy import place
-from log_utils import LogUtils
+from utils.log_utils import LogUtils
+from utils.string_utils import StringUtils
 import snakes.plugins
 snakes.plugins.load("gv", "snakes.nets", "nets")
 from nets import *
@@ -66,25 +67,9 @@ def create_petri_net():
     # transition 2
     uri_login =  "/rest/basket/{basketId}"
     transition_2 = create_transition_and_basic_places(petri_net, uri_login)
-    petri_net.add_input(place_input_output_bid.name, transition_2.name, Variable("email"))
+    petri_net.add_input(place_input_output_bid.name, transition_2.name, Variable("id"))
 
     return petri_net, transition_1
-
-# return true if the URIs are the same
-# ex: "/rest/basket/6" and "/rest/basket/{basketId}"
-def compare_uri_with_model(model_uri, uri):
-    model_uri_splited = model_uri.split('/')
-    uri_splited = uri.split('/')
-    if (len(model_uri_splited) == len(uri_splited)):
-        for i in range(len(model_uri_splited)):
-            if (model_uri_splited[i] != uri_splited[i]):
-                if not ('{' in model_uri_splited[i]):
-                    return False
-    else:
-        return False
-
-
-    return True
 
 
 def get_place_by_name(petri_net, name):
@@ -106,11 +91,11 @@ def fill_input_places(petri_net, log_json):
         for parameter_name in request_body_parameter_names:
             for place in places:
                 if place[0].name == parameter_name:
-                    place[0].add(ColouredToken(LogUtils.create_data_from_log(log_json, parameter_name)))
+                    place[0].add(ColouredToken(LogUtils.create_data_from_request_body_in_log(log_json, parameter_name)))
                     continue
     else:
         for transition in petri_net.transition():
-            if (compare_uri_with_model(transition.name, log_json.get('uri') )):
+            if (StringUtils.compare_uri_with_model(transition.name, log_json.get('uri') )):
                 place_req_name='Req-'+transition.name
                 place = get_place_by_name(petri_net, place_req_name)
                 place.tokens.add(ColouredToken(LogUtils.create_request_line_from_log(log_json)))
@@ -126,19 +111,36 @@ def main():
     #    fill_input_places(petri_net, log_json)
     log_line = logs_json[1]
     fill_input_places(petri_net, log_line)
-    #fill_input_places(petri_net, logs_json[3])
 
     petri_net.draw("value-0.png")
 
     request_line = ColouredToken(LogUtils.create_request_line_from_log(log_line))
     response_status = ColouredToken(LogUtils.create_response_status_from_log(log_line))
-    email=ColouredToken(LogUtils.create_data_from_log(log_line, 'email'))
-    password=ColouredToken(LogUtils.create_data_from_log(log_line, 'password'))
+    email=ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'email'))
+    password=ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'password'))
     authentication = ColouredToken(LogUtils.create_response_data_from_log(log_line, 'authentication'))
 
     import ipdb; ipdb.set_trace()
-
     transition_1.fire(Substitution(request=request_line, email=email, password=password, status=response_status, authentication=authentication))
+    petri_net.draw("value-0.png")
+
+    import ipdb; ipdb.set_trace()
+    log_line = logs_json[3]
+    fill_input_places(petri_net, log_line)
+    petri_net.draw("value-0.png")
+    transition_2 = petri_net.transition()[1]
+
+    request_line = ColouredToken(LogUtils.create_request_line_from_log(log_line))
+    response_status = ColouredToken(LogUtils.create_response_status_from_log(log_line))
+    # TODO: this extraction should be based on OpenAPI doc
+    #id = ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'id'))
+    id = ColouredToken({
+        'bid': StringUtils.get_first_diff_in_uri(transition_2.name, log_line.get('uri')),
+        'user_id': log_line.get('ip')
+    })
+    
+    import ipdb; ipdb.set_trace()
+    transition_2.fire(Substitution(request=request_line, status=response_status, id=id))
     petri_net.draw("value-0.png")
 
 

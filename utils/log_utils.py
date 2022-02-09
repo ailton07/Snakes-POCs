@@ -2,10 +2,10 @@
 class LogUtils:
     
     @staticmethod
-    def create_data_from_log(log_json, parameter):
+    def create_data_from_request_body_in_log(log_json, parameter):
         return {
             parameter:log_json.get('requestBody').get(parameter),  
-            'id':log_json.get('ip')
+            'user_id':log_json.get('ip')
             }
         
     @staticmethod
@@ -13,20 +13,20 @@ class LogUtils:
         return {
             'uri':log_json.get('uri'), 
             'method':log_json.get('method'), 
-            'id':log_json.get('ip')
+            'user_id':log_json.get('ip')
             }
 
     @staticmethod
     def create_response_status_from_log(log_json):
         return {
             'statusCode':log_json.get('statusCode'), 
-            'id':log_json.get('ip')
+            'user_id':log_json.get('ip')
             }
 
     @staticmethod
     def create_response_data_from_log(log_json, parameter):
         return {
             parameter:log_json.get('responseBody').get(parameter), 
-            'id':log_json.get('ip')
+            'user_id':log_json.get('ip')
             }    
  
