@@ -1,5 +1,5 @@
 import json
-from coloured_token import ColouredToken
+from ColouredToken import ColouredToken
 from numpy import place
 from utils.log_utils import LogUtils
 from utils.string_utils import StringUtils

@@ -16,7 +16,6 @@ class ColouredToken:
         return None
 
 
-
     def get_element_from_dict (self, element):
         result = self.check_if_contains_attribute(self.get_dict(), element)
         if result:
@@ -47,4 +46,12 @@ class ColouredToken:
         return hash(self.json_dict)
 
 
-    
+class RequestResponseToken(ColouredToken):
+    response_body = ''
+
+    def __init__ (self, json_dict, response) :
+        self.response_body = json.dumps(response)
+        super().__init__(json_dict)
+        
+    def get_response_body_dict (self):
+        return json.loads(self.response_body)
