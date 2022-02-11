@@ -1,5 +1,6 @@
 import json
 
+USER_IDENTIFICATION = 'user_id'
 class ColouredToken:
     
     def get_dict (self):
@@ -21,7 +22,7 @@ class ColouredToken:
         if result:
             response = {
                 element : self.check_if_contains_attribute(self.get_dict(), element),
-                'user_id': self.user_id
+                USER_IDENTIFICATION: self.user_id
                 }
 
             return json.dumps(response)
@@ -29,7 +30,7 @@ class ColouredToken:
 
     def __init__ (self, value) :
         self.json_dict = json.dumps(value)
-        self.user_id = value.get('user_id')
+        self.user_id = value.get(USER_IDENTIFICATION)
 
     def __str__ (self) :
         return self.json_dict
@@ -48,10 +49,23 @@ class ColouredToken:
 
 class RequestResponseToken(ColouredToken):
     response_body = ''
+    status_code = ''
 
-    def __init__ (self, json_dict, response) :
+    # def __init__ (self, json_dict, response) :
+    #     self.response_body = json.dumps(response)
+    #     super().__init__(json_dict)
+
+    def __init__ (self, json_dict, response, status) :
         self.response_body = json.dumps(response)
+        self.status_code = status
         super().__init__(json_dict)
         
     def get_response_body_dict (self):
         return json.loads(self.response_body)
+
+    def get_status(self):
+        response = {
+            'status' : self.status_code,
+            USER_IDENTIFICATION: self.user_id
+        }
+        return json.dumps(response)

@@ -1,5 +1,5 @@
 import json
-from ColouredToken import ColouredToken
+from ColouredToken import ColouredToken, RequestResponseToken
 from numpy import place
 from utils.log_utils import LogUtils
 from utils.string_utils import StringUtils
@@ -30,7 +30,7 @@ def create_transition_and_basic_places(petri_net, uri_login):
     petri_net.add_place(place_status)
     petri_net.add_transition(transition)
     petri_net.add_input(place_req.name, transition.name, Variable("request"))
-    petri_net.add_output(place_status.name, transition.name, Variable("status"))
+    petri_net.add_output(place_status.name, transition.name, Expression("request.get_status()"))
 
     return transition
 
@@ -114,14 +114,14 @@ def main():
 
     petri_net.draw("value-0.png")
 
-    request_line = ColouredToken(LogUtils.create_request_line_from_log(log_line))
-    response_status = ColouredToken(LogUtils.create_response_status_from_log(log_line))
+    request_line = RequestResponseToken(*LogUtils.create_request_request_response_from_log(log_line))
     email=ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'email'))
     password=ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'password'))
     authentication = ColouredToken(LogUtils.create_response_data_from_log(log_line, 'authentication'))
 
     import ipdb; ipdb.set_trace()
-    transition_1.fire(Substitution(request=request_line, email=email, password=password, status=response_status, authentication=authentication))
+    #transition_1.fire(Substitution(request=request_line, email=email, password=password, status=response_status, authentication=authentication))
+    transition_1.fire(Substitution(request=request_line, email=email, password=password, authentication=authentication))
     petri_net.draw("value-0.png")
 
     import ipdb; ipdb.set_trace()
@@ -130,8 +130,7 @@ def main():
     petri_net.draw("value-0.png")
     transition_2 = petri_net.transition()[1]
 
-    request_line = ColouredToken(LogUtils.create_request_line_from_log(log_line))
-    response_status = ColouredToken(LogUtils.create_response_status_from_log(log_line))
+    request_line = RequestResponseToken(*LogUtils.create_request_request_response_from_log(log_line))
     # TODO: this extraction should be based on OpenAPI doc
     #id = ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'id'))
     id = ColouredToken({
@@ -140,7 +139,7 @@ def main():
     })
     
     import ipdb; ipdb.set_trace()
-    transition_2.fire(Substitution(request=request_line, status=response_status, id=id))
+    transition_2.fire(Substitution(request=request_line, id=id))
     petri_net.draw("value-0.png")
 
 

@@ -30,3 +30,13 @@ class LogUtils:
             'user_id':log_json.get('ip')
             }    
  
+    @staticmethod
+    def create_request_request_response_from_log(log_json):
+        return {
+            'uri':log_json.get('uri'), 
+            'method':log_json.get('method'), 
+            'user_id':log_json.get('ip')
+            }, {
+                'response_body':log_json.get('responseBody'),
+                'user_id':log_json.get('ip')
+            }, log_json.get('statusCode')
