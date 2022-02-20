@@ -69,3 +69,7 @@ class RequestResponseToken(ColouredToken):
             USER_IDENTIFICATION: self.user_id
         }
         return json.dumps(response)
+
+    def get_response(self):
+        body = json.loads(self.response_body)
+        return json.dumps(body.get('response_body'))

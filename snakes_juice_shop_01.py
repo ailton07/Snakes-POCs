@@ -1,5 +1,6 @@
 import json
 from ColouredToken import ColouredToken, RequestResponseToken
+from openapi_core import create_spec
 from numpy import place
 from utils.log_utils import LogUtils
 from utils.string_utils import StringUtils
@@ -15,6 +16,12 @@ from nets import *
 logs_file = open('logs/combined_login.json')
 logs_json = json.load(logs_file)
 logs_file.close()
+
+# loading OpenAPI
+# Convert YAML to JSON https://www.convertjson.com/yaml-to-json.htm
+with open('examples/JuiceShop.json', 'r') as spec_file:
+   spec_dict = json.load(spec_file)
+spec = create_spec(spec_dict)
 
 def create_transition_and_basic_places(petri_net, uri_login):
     place_req = Place("Req-"+uri_login, [])
@@ -33,7 +40,6 @@ def create_transition_and_basic_places(petri_net, uri_login):
     petri_net.add_output(place_status.name, transition.name, Expression("request.get_status()"))
 
     return transition
-
 
 def create_petri_net():
     # constants
