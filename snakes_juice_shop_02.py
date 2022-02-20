@@ -1,8 +1,7 @@
 import json
 from ColouredToken import ColouredToken, RequestResponseToken
-#from openapi_core import create_spec
 from prance import ResolvingParser
-from numpy import place
+from OpenAPI2PetriNet import OpenAPI2PetriNet
 from utils.log_utils import LogUtils
 from utils.string_utils import StringUtils
 import snakes.plugins
@@ -24,121 +23,8 @@ logs_file.close()
 # with open('examples/JuiceShop.json', 'r') as spec_file:
 #    spec_dict = json.load(spec_file)
 # spec = create_spec(spec_dict)
-parser = ResolvingParser('examples/JuiceShop.yaml')
 
-
-def create_transition_and_basic_places(petri_net, uri_login):
-    place_req = Place("Req-"+uri_login, [])
-
-    # creating transition
-    transition =  Transition(uri_login)
-
-    # creating outputs to the transition
-    place_status = Place("Status-"+uri_login, [])
-
-    # conecting places to the transtion
-    petri_net.add_place(place_req)
-    petri_net.add_place(place_status)
-    petri_net.add_transition(transition)
-    petri_net.add_input(place_req.name, transition.name, Variable("request"))
-    petri_net.add_output(place_status.name, transition.name, Expression("request.get_status()"))
-
-    return transition
-
-def create_petri_net():
-
-    petri_net = PetriNet('Juice Shop')
-    
-    #paths = spec.get('paths')
-    spec = parser.specification
-    paths = spec.get('paths')
-
-    for pathKey, pathValue in spec.get('paths').items():
-        #uri_login =  "/rest/user/login"
-        uri = pathKey
-        # transition 1
-        # creating basic structure
-        transition = create_transition_and_basic_places(petri_net, uri)
-    
-        # cheking the OperationObjects
-        for operationObjectKey, operationObjectValue in pathValue.items():
-
-            requestBody = operationObjectValue.get('requestBody')
-            handle_request_body(petri_net, transition, requestBody)
-
-            parameters = operationObjectValue.get('parameters')
-            handle_parameters(petri_net, transition, parameters)
-
-            responses = operationObjectValue.get('responses')
-            handle_responses(petri_net, uri, transition, responses)
-                    
-
-    # # creating inputs to the transition 1
-    # place_input_email = Place("email", [])
-    # place_input_password = Place("password", [])
-
-    # # creating outputs to the transition 1
-    # place_output_authentication = Place("authentication", [])
-    # place_input_output_bid = Place("bid", [])
-
-    # # conecting places to the transtion 1
-    # petri_net.add_place(place_input_email)
-    # petri_net.add_place(place_input_password)
-    # petri_net.add_place(place_output_authentication)
-    # petri_net.add_place(place_input_output_bid)
-
-    # petri_net.add_input(place_input_email.name, transition_1.name, Variable("email"))
-    # petri_net.add_input(place_input_password.name, transition_1.name, Variable("password"))
-    # petri_net.add_output(place_output_authentication.name, transition_1.name, Variable("authentication"))
-    # petri_net.add_output(place_input_output_bid.name, transition_1.name, Expression("authentication.get_element_from_dict('bid')"))
-
-    # # transition 2
-    # uri_login =  "/rest/basket/{basketId}"
-    # transition_2 = create_transition_and_basic_places(petri_net, uri_login)
-    # petri_net.add_input(place_input_output_bid.name, transition_2.name, Variable("id"))
-
-    return petri_net
-
-def handle_responses(petri_net, uri, transition, responses):
-    if (responses):
-        for responseKey, responseValue in responses.items():
-            content = responseValue.get('content')
-            for contentKey, contentValue in content.items():
-                content_type = contentKey
-                schema = contentValue.get('schema')
-                place = Place(f'Response-{uri}', [])
-                petri_net.add_place(place)
-                petri_net.add_output(place.name, transition.name, Expression("request.get_response()"))
-
-def handle_parameters(petri_net, transition, parameters):
-    if (parameters):
-        for parameter in parameters:
-            create_place_and_connect_as_input(petri_net, transition, parameter.get('name'))
-
-def handle_request_body(petri_net, transition, requestBody):
-    if (requestBody):
-        content = requestBody.get('content')
-        for contentKey, contentValue in content.items():
-            if (contentValue.get('schema')):
-                schema = contentValue.get('schema')
-                # possible values of schema type https://yaml.org/spec/1.2-old/spec.html#id2803231
-                type = schema.get('type')
-                if (type == 'object'):
-                    properties = schema.get('properties')
-                    for property_key, property_value in properties.items():
-                        property_name = property_key
-                                #property_type = property_value.get('type')
-                        create_place_and_connect_as_input(petri_net, transition, property_name)
-
-def create_place_and_connect_as_input(petri_net, transition, property_name):
-    place = Place(property_name, [])
-    petri_net.add_place(place)
-    petri_net.add_input(place.name, transition.name, Variable(property_name))
-
-def create_place_and_connect_as_output(petri_net, transition, property_name):
-    place = Place(property_name, [])
-    petri_net.add_place(place)
-    petri_net.add_output(place.name, transition.name, Variable(property_name))
+#parser = ResolvingParser('examples/JuiceShop.yaml')
 
 
 def get_place_by_name(petri_net, name):
@@ -173,7 +59,11 @@ def fill_input_places(petri_net, log_json):
 
 
 def main():
-    petri_net = create_petri_net()
+    open_api_to_petri_parser = OpenAPI2PetriNet('examples/JuiceShop.yaml')
+
+    import ipdb; ipdb.set_trace()
+    
+    petri_net = open_api_to_petri_parser.create_petri_net()
     transitions = petri_net.transition()
     petri_net.draw("value-0.png")
 
