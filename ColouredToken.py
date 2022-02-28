@@ -36,7 +36,7 @@ class ColouredToken:
         return self.json_dict
 
     def __repr__ (self) :
-        return self.__str__()
+        return self.__str__() if len(self.__str__()) < 60 else self.__str__()[0:60:1]+'...'
 
     def __eq__(self, other):
         if self.__str__() == other.__str__():
@@ -62,6 +62,9 @@ class RequestResponseToken(ColouredToken):
         
     def get_response_body_dict (self):
         return json.loads(self.response_body)
+
+    def get_object_from_response_body_dict (self):
+        return json.loads(self.response_body).get('response_body')
 
     def get_status(self):
         response = {

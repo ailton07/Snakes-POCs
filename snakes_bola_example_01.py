@@ -8,23 +8,28 @@ import snakes.plugins
 snakes.plugins.load("gv", "snakes.nets", "nets")
 from nets import *
 
-# This version create the places using the spec
-
-# Instruções no livro Web Scraping com Pyhton
-# source venv/bin/activate
-
+# Código utilizado na dissertação como exemplo
 # loading log
-logs_file = open('logs/combined_login.json')
+logs_file = open('logs/combined_bola_example.json')
 logs_json = json.load(logs_file)
 logs_file.close()
+
+def temp_create_link(petri_net, open_api_to_petri_parser):
+    transitions = petri_net.transition()
+    transition = transitions[0]
+    place = open_api_to_petri_parser.get_place_by_name(petri_net, 'id')
+    petri_net.add_output(place.name, transition.name, Expression("request.get_object_from_response_body_dict().get('authentication').get('id')"))
+
 
 
 def main():
     import ipdb; ipdb.set_trace()
     
-    open_api_to_petri_parser = OpenAPI2PetriNet('examples/JuiceShop.yaml')
+    open_api_to_petri_parser = OpenAPI2PetriNet('examples/BOLA_Example.yaml')
     petri_net = open_api_to_petri_parser.create_petri_net('Juice Shop')
     transitions = petri_net.transition()
+    # uma vez que ainda não suportamos a criação automatica de links, a faremos manualmente aqui.
+    temp_create_link(petri_net, open_api_to_petri_parser)
     petri_net.draw("value-0.png")
 
     log_line = logs_json[1]
