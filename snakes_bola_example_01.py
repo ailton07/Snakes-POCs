@@ -47,6 +47,7 @@ def main():
     import ipdb; ipdb.set_trace()
     #transition_1.fire(Substitution(request=request_line, email=email, password=password, status=response_status, authentication=authentication))
     transitions[0].fire(Substitution(request=request_line, email=email, password=password, authentication=authentication))
+    petri_net.draw("value-1.png")
     
     log_line = logs_json[3]
     open_api_to_petri_parser.fill_input_places(petri_net, log_line)

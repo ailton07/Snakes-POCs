@@ -56,7 +56,7 @@ class RequestResponseToken(ColouredToken):
     #     super().__init__(json_dict)
 
     def __init__ (self, json_dict, response, status) :
-        self.response_body = json.dumps(response)
+        self.response_body = json.dumps(response, separators=(',\n', ':'))
         self.status_code = status
         super().__init__(json_dict)
         
@@ -71,8 +71,8 @@ class RequestResponseToken(ColouredToken):
             'status' : self.status_code,
             USER_IDENTIFICATION: self.user_id
         }
-        return json.dumps(response)
+        return json.dumps(response, separators=(',\n', ':'))
 
     def get_response(self):
         body = json.loads(self.response_body)
-        return json.dumps(body.get('response_body'))
+        return json.dumps(body.get('response_body'), separators=(',\n', ':'))
