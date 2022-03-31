@@ -31,7 +31,7 @@ class LogUtils:
             }    
  
     @staticmethod
-    def create_request_request_response_from_log(log_json):
+    def create_request_response_from_log(log_json):
         return {
             'uri':log_json.get('uri'), 
             'method':log_json.get('method'), 

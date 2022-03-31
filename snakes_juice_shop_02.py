@@ -33,7 +33,7 @@ def main():
     petri_net.draw("value-0.png")
     
 
-    request_line = RequestResponseToken(*LogUtils.create_request_request_response_from_log(log_line))
+    request_line = RequestResponseToken(*LogUtils.create_request_response_from_log(log_line))
     email=ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'email'))
     password=ColouredToken(LogUtils.create_data_from_request_body_in_log(log_line, 'password'))
     authentication = ColouredToken(LogUtils.create_response_data_from_log(log_line, 'authentication'))

@@ -38,7 +38,7 @@ paths:
               operationId: getAccountById
               parameters:
                 id: $response.body#/authentication.id
-  /accounts{id}:
+  /accounts/{id}:
     get:
       tags: ["Log-in"]
       operationId: getAccountById

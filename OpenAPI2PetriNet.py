@@ -104,7 +104,31 @@ class OpenAPI2PetriNet:
         petri_net.add_output(place.name, transition.name, Variable(property_name))
 
     def get_place_by_name(self, petri_net, name):
-        return [x for x in petri_net.place() if x.name == name][0]
+        response = [x for x in petri_net.place() if x.name == name]
+        if (response and len(response) > 0):
+            return response[0]
+        else:
+            # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
+            # parametro
+            response = [x for x in petri_net.place() if StringUtils.compare_uri_with_model(x.name, name)]
+            if (response and len(response) > 0):
+                return response[0]
+        return None
+
+    def get_transition_by_name(self, petri_net, name):
+        response = [x for x in petri_net.transition() if x.name == name]
+        if (response and len(response) > 0):
+            return response[0]
+        else:
+            # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
+            # parametro
+            response = [x for x in petri_net.transition() if StringUtils.compare_uri_with_model(x.name, name)]
+            if (response and len(response) > 0):
+                return response[0]
+        return None
+
+
+        
 
     # def fill_input_places(self, petri_net, log_json):
     #     if (log_json.get('uri') in [x.name for x in petri_net.transition()]):
@@ -132,23 +156,39 @@ class OpenAPI2PetriNet:
     #                 place = self.get_place_by_name(petri_net, place_req_name)
     #                 place.tokens.add(ColouredToken(LogUtils.create_request_line_from_log(log_json)))
 
+    def place_is_output(self, petri_net, place):
+        #import ipdb; ipdb.set_trace()
+        transitions = petri_net.transition()
+        for transition in transitions:
+            for output in transition.output():
+                if output[0].name == place.name:
+                    return True
+
+        return False
+
+
+
     def fill_input_places(self, petri_net, log_json):
         for transition in petri_net.transition():
             if (StringUtils.compare_uri_with_model(transition.name, log_json.get('uri') )):
                 # setting tokens related to RequestLine
                 place_req_name='Req-'+log_json.get('uri')
                 place = self.get_place_by_name(petri_net, place_req_name)
-                place.tokens.add(ColouredToken(LogUtils.create_request_line_from_log(log_json)))
+                if place:
+                    place.tokens.add(ColouredToken(LogUtils.create_request_line_from_log(log_json)))
 
-                # given a transistion, check if we have some input to set
-                # setting tokens related to requestBody
-                request_body_parameter_names = [*log_json.get('requestBody').keys()] # convert dict to array
-                transition = [x for x in petri_net.transition() if x.name == log_json.get('uri')][0]
-                places = transition.input()
-                for parameter_name in request_body_parameter_names:
-                    for place in places:
-                        if place[0].name == parameter_name:
-                            place[0].add(ColouredToken(LogUtils.create_data_from_request_body_in_log(log_json, parameter_name)))
-                            continue
-                # setting tokens related to parameters
+                    # given a transistion, check if we have some input to set
+                    # setting tokens related to requestBody
+                    request_body_parameter_names = [*log_json.get('requestBody').keys()] # convert dict to array
+                    transition = self.get_transition_by_name(petri_net, log_json.get('uri'))
+                    places = transition.input()
+                    for parameter_name in request_body_parameter_names:
+                        for place in places:
+                            # se o place for output de alguma transição, nao devemos colocar tokens
+                            if self.place_is_output(petri_net, place[0]):
+                                continue
+                            if place[0].name == parameter_name:
+                                place[0].add(ColouredToken(LogUtils.create_data_from_request_body_in_log(log_json, parameter_name)))
+                                break
+                    # setting tokens related to parameters
         
