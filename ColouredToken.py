@@ -29,7 +29,7 @@ class ColouredToken:
 
 
     def __init__ (self, value) :
-        self.json_dict = json.dumps(value)
+        self.json_dict = json.dumps(value, separators=(',\n', ':'))
         self.user_id = value.get(USER_IDENTIFICATION)
 
     def __str__ (self) :
