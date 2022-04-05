@@ -10,6 +10,7 @@ from nets import *
 class OpenAPI2PetriNet:
 
     parser = ''
+    petri_net = None
 
     def get_parser(self):
         return self.parser
@@ -41,7 +42,7 @@ class OpenAPI2PetriNet:
 
                 responses = operationObjectValue.get('responses')
                 self.handle_responses(petri_net, uri, transition, responses)
-    
+        self.petri_net = petri_net
         return petri_net
 
     def create_transition_and_basic_places(self, petri_net, uri_login):
@@ -115,6 +116,18 @@ class OpenAPI2PetriNet:
                 return response[0]
         return None
 
+    def get_place_by_name(self, name):
+        response = [x for x in self.petri_net.place() if x.name == name]
+        if (response and len(response) > 0):
+            return response[0]
+        else:
+            # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
+            # parametro
+            response = [x for x in self.petri_net.place() if StringUtils.compare_uri_with_model(x.name, name)]
+            if (response and len(response) > 0):
+                return response[0]
+        return None
+
     def get_transition_by_name(self, petri_net, name):
         response = [x for x in petri_net.transition() if x.name == name]
         if (response and len(response) > 0):
@@ -123,6 +136,18 @@ class OpenAPI2PetriNet:
             # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
             # parametro
             response = [x for x in petri_net.transition() if StringUtils.compare_uri_with_model(x.name, name)]
+            if (response and len(response) > 0):
+                return response[0]
+        return None
+
+    def get_transition_by_name(self, name):
+        response = [x for x in self.petri_net.transition() if x.name == name]
+        if (response and len(response) > 0):
+            return response[0]
+        else:
+            # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
+            # parametro
+            response = [x for x in self.petri_net.transition() if StringUtils.compare_uri_with_model(x.name, name)]
             if (response and len(response) > 0):
                 return response[0]
         return None
@@ -168,24 +193,24 @@ class OpenAPI2PetriNet:
 
 
 
-    def fill_input_places(self, petri_net, log_json):
-        for transition in petri_net.transition():
+    def fill_input_places(self, log_json):
+        for transition in self.petri_net.transition():
             if (StringUtils.compare_uri_with_model(transition.name, log_json.get('uri') )):
                 # setting tokens related to RequestLine
                 place_req_name='Req-'+log_json.get('uri')
-                place = self.get_place_by_name(petri_net, place_req_name)
+                place = self.get_place_by_name(place_req_name)
                 if place:
                     place.tokens.add(ColouredToken(LogUtils.create_request_line_from_log(log_json)))
 
                     # given a transistion, check if we have some input to set
                     # setting tokens related to requestBody
                     request_body_parameter_names = [*log_json.get('requestBody').keys()] # convert dict to array
-                    transition = self.get_transition_by_name(petri_net, log_json.get('uri'))
+                    transition = self.get_transition_by_name(log_json.get('uri'))
                     places = transition.input()
                     for parameter_name in request_body_parameter_names:
                         for place in places:
                             # se o place for output de alguma transição, nao devemos colocar tokens
-                            if self.place_is_output(petri_net, place[0]):
+                            if self.place_is_output(self.petri_net, place[0]):
                                 continue
                             if place[0].name == parameter_name:
                                 place[0].add(ColouredToken(LogUtils.create_data_from_request_body_in_log(log_json, parameter_name)))

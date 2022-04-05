@@ -2,6 +2,8 @@ import json
 
 USER_IDENTIFICATION = 'user_id'
 class ColouredToken:
+    json_dict = None
+    user_id = None
     
     def get_dict (self):
         return json.loads(self.json_dict)
@@ -48,8 +50,13 @@ class ColouredToken:
 
 
 class RequestResponseToken(ColouredToken):
-    response_body = ''
-    status_code = ''
+    # request data
+    uri = None
+    method = None
+    # user_id is in ColouredToken
+    # response data
+    response_body = None
+    status_code = None
 
     # def __init__ (self, json_dict, response) :
     #     self.response_body = json.dumps(response)
@@ -58,6 +65,8 @@ class RequestResponseToken(ColouredToken):
     def __init__ (self, json_dict, response, status) :
         self.response_body = json.dumps(response, separators=(',\n', ':'))
         self.status_code = status
+        self.uri = json_dict.get('uri')
+        self.method = json_dict.get('method')
         super().__init__(json_dict)
         
     def get_response_body_dict (self):
@@ -76,3 +85,16 @@ class RequestResponseToken(ColouredToken):
     def get_response(self):
         body = json.loads(self.response_body)
         return json.dumps(body.get('response_body'), separators=(',\n', ':'))
+
+    def _create_request_line(self, uri_str, method_str, ip_str):
+        return ColouredToken({
+            'uri': uri_str,
+            'method': method_str,
+            'user_id': ip_str
+        })
+
+    def get_next_request(self, uri_str, method_str):
+        if self.uri is None:
+            raise Exception("This token don't have request information")
+        next_request = self._create_request_line(uri_str, method_str, self.user_id)
+        return next_request

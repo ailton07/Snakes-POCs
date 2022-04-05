@@ -17,7 +17,13 @@ logs_file.close()
 def temp_create_link(petri_net, open_api_to_petri_parser):
     transitions = petri_net.transition()
     transition = transitions[0]
-    place = open_api_to_petri_parser.get_place_by_name(petri_net, 'id')
+
+    # setting req arc
+    place = open_api_to_petri_parser.get_place_by_name('Req-/accounts/{id}')
+    petri_net.add_output(place.name, transition.name, Expression("request.get_next_request('/accounts/{id}', 'GET')"))
+    # Value(ColouredToken(LogUtils.create_request_line_from_log('/accounts/{id}', 'GET', '')))
+    # setting input1 arc
+    place = open_api_to_petri_parser.get_place_by_name('id')
     petri_net.add_output(place.name, transition.name, Expression("request.get_object_from_response_body_dict().get('authentication').get('id')"))
 
 
@@ -35,7 +41,7 @@ def main():
 
     log_line = logs_json[1]
     #fill_input_places(petri_net, log_line)
-    open_api_to_petri_parser.fill_input_places(petri_net, log_line)
+    open_api_to_petri_parser.fill_input_places(log_line)
     petri_net.draw("value-0.png")
     
 
@@ -50,7 +56,7 @@ def main():
     petri_net.draw("value-1.png")
     
     log_line = logs_json[3]
-    open_api_to_petri_parser.fill_input_places(petri_net, log_line)
+    open_api_to_petri_parser.fill_input_places(log_line)
     petri_net.draw("value-0.png")
 
     import ipdb; ipdb.set_trace()
