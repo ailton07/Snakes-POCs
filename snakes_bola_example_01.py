@@ -35,7 +35,7 @@ def main():
     import ipdb; ipdb.set_trace()
     petri_net.draw("value-0.png")
     # uma vez que ainda não suportamos a criação automatica de links, a faremos manualmente aqui.
-    temp_create_link(petri_net, open_api_to_petri_parser)
+    # temp_create_link(petri_net, open_api_to_petri_parser)
     petri_net.draw("value-0.png")
     import ipdb; ipdb.set_trace()
 

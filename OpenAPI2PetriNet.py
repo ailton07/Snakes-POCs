@@ -4,6 +4,7 @@ from prance import ResolvingParser
 snakes.plugins.load("gv", "snakes.nets", "nets")
 from utils.log_utils import LogUtils
 from utils.string_utils import StringUtils
+from nets import PetriNet, Place, Expression, Transition, Variable # added here to mute warnings
 from nets import *
 
 
@@ -18,38 +19,96 @@ class OpenAPI2PetriNet:
     def __init__ (self, path) :
         self.parser = ResolvingParser(path)
 
-    def create_petri_net(self, name):
+    def create_petri_net(self, name, create_links=True):
         petri_net = PetriNet(name)
         
         spec = self.parser.specification
         paths = spec.get('paths')
 
-        for pathKey, pathValue in spec.get('paths').items():
-            #uri_login =  "/rest/user/login"
-            uri = pathKey
+        for path_key, path_value in spec.get('paths').items():
+            uri = path_key
             # transition 1
             # creating basic structure
             transition = self.create_transition_and_basic_places(petri_net, uri)
         
             # cheking the OperationObjects
-            for operationObjectKey, operationObjectValue in pathValue.items():
+            for operation_object_key, operation_object_value in path_value.items():
 
-                requestBody = operationObjectValue.get('requestBody')
+                requestBody = operation_object_value.get('requestBody')
                 self.handle_request_body(petri_net, transition, requestBody)
 
-                parameters = operationObjectValue.get('parameters')
+                parameters = operation_object_value.get('parameters')
                 self.handle_parameters(petri_net, transition, parameters)
 
-                responses = operationObjectValue.get('responses')
+                responses = operation_object_value.get('responses')
                 self.handle_responses(petri_net, uri, transition, responses)
         self.petri_net = petri_net
+
+        if create_links:
+            self.create_link_arcs()
+
         return petri_net
+
+
+    def create_link_arcs(self):
+        spec = self.parser.specification
+        import ipdb; ipdb.set_trace();
+        for path_key, path_value in spec.get('paths').items():
+            uri = path_key
+            transition = self.get_transition_by_name(uri)
+            # cheking the OperationObjects
+            for operation_object_key, operation_object_value in path_value.items():
+                responses = operation_object_value.get('responses')
+                links = self.extract_links_from_responses(responses)
+                if (links):
+                    for link in links:
+                        for link_key, link_value in link.items():
+                            operation_id = link_value.get('operationId')
+                            req_place = self.get_req_place_by_operation_id(operation_id)
+                            nex_transition_name = req_place.name.replace('Req-', '')
+                            next_http_method = self.get_http_method_by_operation_id(operation_id)
+                            self.petri_net.add_output(req_place.name, transition.name,
+                                                 Expression(f"request.get_next_request('{nex_transition_name}', '{next_http_method}')"))
+
+
+    def get_req_place_by_operation_id(self, operation_id):
+        spec = self.parser.specification
+        for path_key, path_value in spec.get('paths').items():
+            uri = path_key
+            for operation_object_key, operation_object_value in path_value.items():
+                operationId = operation_object_value.get('operationId')
+                if operationId == operation_id:
+                    req_place = self.get_place_by_name(self.create_name_to_req_place(uri))
+                    if req_place is None:
+                        raise Exception(f'Req Place not found to uri={uri}')
+                    return req_place
+
+
+    def get_http_method_by_operation_id(self, operation_id):
+        spec = self.parser.specification
+        for path_key, path_value in spec.get('paths').items():
+            uri = path_key
+            for operation_object_key, operation_object_value in path_value.items():
+                operationId = operation_object_value.get('operationId')
+                if operationId == operation_id:
+                    return operation_object_key.upper()
+
+
+    def extract_links_from_responses(self, responses):
+        links_set = []
+        if (responses):
+            for responseKey, responseValue in responses.items():
+                links = responseValue.get('links')
+                if links:
+                    links_set.append(links)
+        return links_set
+
 
     def create_transition_and_basic_places(self, petri_net, uri_login):
         place_req = Place("Req-"+uri_login, [])
 
         # creating transition
-        transition =  Transition(uri_login)
+        transition = Transition(uri_login)
 
         # creating outputs to the transition
         place_status = Place("Status-"+uri_login, [])
@@ -63,6 +122,7 @@ class OpenAPI2PetriNet:
 
         return transition
 
+
     def handle_responses(self, petri_net, uri, transition, responses):
         if (responses):
             for responseKey, responseValue in responses.items():
@@ -74,10 +134,12 @@ class OpenAPI2PetriNet:
                     petri_net.add_place(place)
                     petri_net.add_output(place.name, transition.name, Expression("request.get_response()"))
 
+
     def handle_parameters(self, petri_net, transition, parameters):
         if (parameters):
             for parameter in parameters:
                 self.create_place_and_connect_as_input(petri_net, transition, parameter.get('name'))
+
 
     def handle_request_body(self, petri_net, transition, requestBody):
         if (requestBody):
@@ -128,17 +190,17 @@ class OpenAPI2PetriNet:
                 return response[0]
         return None
 
-    def get_transition_by_name(self, petri_net, name):
-        response = [x for x in petri_net.transition() if x.name == name]
-        if (response and len(response) > 0):
-            return response[0]
-        else:
-            # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
-            # parametro
-            response = [x for x in petri_net.transition() if StringUtils.compare_uri_with_model(x.name, name)]
-            if (response and len(response) > 0):
-                return response[0]
-        return None
+    # def get_transition_by_name(self, petri_net, name):
+    #     response = [x for x in petri_net.transition() if x.name == name]
+    #     if (response and len(response) > 0):
+    #         return response[0]
+    #     else:
+    #         # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
+    #         # parametro
+    #         response = [x for x in petri_net.transition() if StringUtils.compare_uri_with_model(x.name, name)]
+    #         if (response and len(response) > 0):
+    #             return response[0]
+    #     return None
 
     def get_transition_by_name(self, name):
         response = [x for x in self.petri_net.transition() if x.name == name]
@@ -152,6 +214,9 @@ class OpenAPI2PetriNet:
                 return response[0]
         return None
 
+
+    def create_name_to_req_place(self, uri):
+        return f'Req-{uri}'
 
         
 
