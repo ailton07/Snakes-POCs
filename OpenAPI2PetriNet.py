@@ -52,7 +52,6 @@ class OpenAPI2PetriNet:
 
     def create_link_arcs(self):
         spec = self.parser.specification
-        import ipdb; ipdb.set_trace();
         for path_key, path_value in spec.get('paths').items():
             uri = path_key
             transition = self.get_transition_by_name(uri)
@@ -166,17 +165,6 @@ class OpenAPI2PetriNet:
         petri_net.add_place(place)
         petri_net.add_output(place.name, transition.name, Variable(property_name))
 
-    def get_place_by_name(self, petri_net, name):
-        response = [x for x in petri_net.place() if x.name == name]
-        if (response and len(response) > 0):
-            return response[0]
-        else:
-            # se o place nao foi encontrado pelo metodo anterior, e possivel que o path tenha um
-            # parametro
-            response = [x for x in petri_net.place() if StringUtils.compare_uri_with_model(x.name, name)]
-            if (response and len(response) > 0):
-                return response[0]
-        return None
 
     def get_place_by_name(self, name):
         response = [x for x in self.petri_net.place() if x.name == name]
