@@ -12,6 +12,7 @@ LOGS_PATH = 'logs/combined_bola_example.json'
 
 OPENAPI_PATH = 'examples/BOLA_Example.yaml'
 #OPENAPI_PATH = 'examples/link-example.yaml'
+#OPENAPI_PATH = 'examples/Structural_Problem_Based_on_BOLA_Example.yaml'
 
 # Código utilizado na dissertação como exemplo
 # loading log

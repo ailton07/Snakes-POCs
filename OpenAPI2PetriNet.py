@@ -22,6 +22,7 @@ class OpenAPI2PetriNet:
 
     def create_petri_net(self, name, create_links=True):
         petri_net = PetriNet(name)
+        self.petri_net = petri_net
 
         spec = self.parser.specification
         paths = spec.get('paths')
@@ -70,15 +71,17 @@ class OpenAPI2PetriNet:
                                                       Expression(
                                                           f"request.get_next_request('{nex_transition_name}', '{next_http_method}')"))
                             # create arc to the following input
-                            ((parameter_id, parameter_value),) = link_value.get('parameters').items()
-                            input_place = self.get_place_by_name(parameter_id)
-                            if RESPONSE_BODY in parameter_value:
-                                expression_str = 'request.get_object_from_response_body_dict()'
-                                for parameter_value_parts in parameter_value \
-                                        .replace(RESPONSE_BODY, '') \
-                                        .split('.'):
-                                    expression_str = expression_str + f'.get(\'{parameter_value_parts}\')'
-                            self.petri_net.add_output(input_place.name, transition.name, Expression(expression_str))
+                            parameters_key_value = link_value.get('parameters')
+                            if parameters_key_value:
+                                ((parameter_id, parameter_value),) = parameters_key_value.items()
+                                input_place = self.get_place_by_name(parameter_id)
+                                if RESPONSE_BODY in parameter_value:
+                                    expression_str = 'request.get_object_from_response_body_dict()'
+                                    for parameter_value_parts in parameter_value \
+                                            .replace(RESPONSE_BODY, '') \
+                                            .split('.'):
+                                        expression_str = expression_str + f'.get(\'{parameter_value_parts}\')'
+                                self.petri_net.add_output(input_place.name, transition.name, Expression(expression_str))
 
     def get_req_place_by_operation_id(self, operation_id):
         """
@@ -142,8 +145,9 @@ class OpenAPI2PetriNet:
                         content_type = contentKey
                         schema = contentValue.get('schema')
                         place = Place(f'Response-{uri}', [])
-                        petri_net.add_place(place)
-                        petri_net.add_output(place.name, transition.name, Expression("request.get_response()"))
+                        if self.get_place_by_name(place.name) == None:
+                            petri_net.add_place(place)
+                            petri_net.add_output(place.name, transition.name, Expression("request.get_response()"))
 
     def handle_parameters(self, petri_net, transition, parameters):
         if (parameters):
@@ -175,6 +179,7 @@ class OpenAPI2PetriNet:
         place = Place(property_name, [])
         petri_net.add_place(place)
         petri_net.add_output(place.name, transition.name, Variable(property_name))
+
 
     def get_place_by_name(self, name):
         response = [x for x in self.petri_net.place() if x.name == name]
