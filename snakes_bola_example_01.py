@@ -3,14 +3,19 @@ from ColouredToken import ColouredToken, RequestResponseToken
 from prance import ResolvingParser
 from OpenAPI2PetriNet import OpenAPI2PetriNet
 from utils.log_utils import LogUtils
-from utils.string_utils import StringUtils
 import snakes.plugins
+
 snakes.plugins.load("gv", "snakes.nets", "nets")
 from nets import *
 
+LOGS_PATH = 'logs/combined_bola_example.json'
+
+OPENAPI_PATH = 'examples/BOLA_Example.yaml'
+#OPENAPI_PATH = 'examples/link-example.yaml'
+
 # Código utilizado na dissertação como exemplo
 # loading log
-logs_file = open('logs/combined_bola_example.json')
+logs_file = open(LOGS_PATH)
 logs_json = json.load(logs_file)
 logs_file.close()
 
@@ -29,11 +34,12 @@ def temp_create_link(petri_net, open_api_to_petri_parser):
 
 
 def main():
-    open_api_to_petri_parser = OpenAPI2PetriNet('examples/BOLA_Example.yaml')
+    open_api_to_petri_parser = OpenAPI2PetriNet(OPENAPI_PATH)
     petri_net = open_api_to_petri_parser.create_petri_net('Juice Shop')
     transitions = petri_net.transition()
     import ipdb; ipdb.set_trace()
     petri_net.draw("value-0.png")
+    # TODO: remove
     # uma vez que ainda não suportamos a criação automatica de links, a faremos manualmente aqui.
     # temp_create_link(petri_net, open_api_to_petri_parser)
     petri_net.draw("value-0.png")

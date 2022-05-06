@@ -137,12 +137,13 @@ class OpenAPI2PetriNet:
         if (responses):
             for responseKey, responseValue in responses.items():
                 content = responseValue.get('content')
-                for contentKey, contentValue in content.items():
-                    content_type = contentKey
-                    schema = contentValue.get('schema')
-                    place = Place(f'Response-{uri}', [])
-                    petri_net.add_place(place)
-                    petri_net.add_output(place.name, transition.name, Expression("request.get_response()"))
+                if content:
+                    for contentKey, contentValue in content.items():
+                        content_type = contentKey
+                        schema = contentValue.get('schema')
+                        place = Place(f'Response-{uri}', [])
+                        petri_net.add_place(place)
+                        petri_net.add_output(place.name, transition.name, Expression("request.get_response()"))
 
     def handle_parameters(self, petri_net, transition, parameters):
         if (parameters):
@@ -165,6 +166,7 @@ class OpenAPI2PetriNet:
                             self.create_place_and_connect_as_input(petri_net, transition, property_name)
 
     def create_place_and_connect_as_input(self, petri_net, transition, property_name):
+        # TODO: verify if the place already exists
         place = Place(property_name, [])
         petri_net.add_place(place)
         petri_net.add_input(place.name, transition.name, Variable(property_name))
