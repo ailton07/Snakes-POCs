@@ -1,6 +1,5 @@
 import json
 from ColouredToken import ColouredToken, RequestResponseToken
-from prance import ResolvingParser
 from OpenAPI2PetriNet import OpenAPI2PetriNet
 from utils.log_utils import LogUtils
 import snakes.plugins
@@ -27,7 +26,6 @@ def temp_create_link(petri_net, open_api_to_petri_parser):
     # setting req arc
     place = open_api_to_petri_parser.get_place_by_name('Req-/accounts/{id}')
     petri_net.add_output(place.name, transition.name, Expression("request.get_next_request('/accounts/{id}', 'GET')"))
-    # Value(ColouredToken(LogUtils.create_request_line_from_log('/accounts/{id}', 'GET', '')))
     # setting input1 arc
     place = open_api_to_petri_parser.get_place_by_name('id')
     petri_net.add_output(place.name, transition.name, Expression("request.get_object_from_response_body_dict().get('authentication').get('id')"))
@@ -58,17 +56,18 @@ def main():
     authentication = ColouredToken(LogUtils.create_response_data_from_log(log_line, 'authentication'))
 
     import ipdb; ipdb.set_trace()
-    #transition_1.fire(Substitution(request=request_line, email=email, password=password, status=response_status, authentication=authentication))
     transitions[0].fire(Substitution(request=request_line, email=email, password=password, authentication=authentication))
     petri_net.draw("value-1.png")
     
     log_line = logs_json[3]
-    open_api_to_petri_parser.fill_input_places(log_line)
+    # TODO: provavelmente não precisamos desse fill_input_places
+    # open_api_to_petri_parser.fill_input_places(log_line)
     petri_net.draw("value-0.png")
 
     import ipdb; ipdb.set_trace()
     request_line = RequestResponseToken(*LogUtils.create_request_response_from_log(log_line))
     id_variable = 6 # esse valor deve ser extraído do log
+    # TODO: FIx: no log temos "uri":"/accounts/6" e no token temos "uri":"/accounts/{id}"
     transitions[1].fire(Substitution(request=request_line, id=id_variable ))
 
     

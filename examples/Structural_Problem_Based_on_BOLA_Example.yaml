@@ -46,8 +46,20 @@ paths:
                 type: object
                 $ref: '#/components/schemas/LoginUserResponse'
           links:
-            getBasketById:
-              operationId: login
+            goToSignup:
+              operationId: signup
+  /signup:
+    post:
+      tags: [ "Signup" ]
+      operationId: signup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpUserRequest'
+      responses:
+        '200':
+          description: user created successfully
   /accounts/{id}:
     get:
       tags: ["Log-in"]
@@ -69,6 +81,13 @@ paths:
 components:
   schemas:
     LoginUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    SignUpUserRequest:
       type: object
       properties:
         email:
