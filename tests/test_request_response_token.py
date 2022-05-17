@@ -2,7 +2,7 @@ import pytest, json
 from ColouredToken import RequestResponseToken
 from utils.log_utils import LogUtils
 
-logs_file = open('tests/logs/combined_login_test.json')
+logs_file = open('logs/combined_login_test.json')
 logs_json = json.load(logs_file)
 logs_file.close()
 

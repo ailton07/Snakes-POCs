@@ -14,7 +14,8 @@ pip3 install -r requirements.txt
 ````
 py.test
 
-# or
-
 py.test tests/test_request_response_token.py
+pytest /Users/ailton/Projects/Snakes-POCs/tests/test_openapi_2_petri_net.py
+
+# or using PyCharm tests
 ```

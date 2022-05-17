@@ -74,7 +74,7 @@ def test_create_link_arcs(get_juice_shop_petri_net_without_links):
         open_api_to_petri_parser.create_link_arcs()
 
     # then we have the invocation of add_output to add a new arc
-    assert fake_add_output.call_count == 1
+    assert fake_add_output.call_count == 2
     # and we have 10 arcs in the petri net
     quantity_of_arcs = 0
     for transition in petri_net_excluding_links.transition():
@@ -106,7 +106,8 @@ def test_fill_input_places(get_juice_shop_petri_net, get_logs_json):
     request_body_parameter_names = [*log_line.get('requestBody').keys()] # convert dict to array
     places_with_tokens = 0
     for request_body_parameter_name in [x.name for x in petri_net.place()]:
-        if (request_body_parameter_name in request_body_parameter_names):
+        request_body_parameter_name_splited = request_body_parameter_name.split()[0] if len(request_body_parameter_name.split()) > 0 else request_body_parameter_name
+        if (request_body_parameter_name_splited in request_body_parameter_names):
             place = open_api_to_petri_parser.get_place_by_name(request_body_parameter_name)
             assert place.tokens.size() == 1
             print (f'place(name={place.name} has 1 token)')
