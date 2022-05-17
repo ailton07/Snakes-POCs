@@ -17,13 +17,15 @@ class StringUtils:
 
         return True
 
+
     @staticmethod
-    def get_open_api_url_from_url(model, uri):
-        list_of_paths = list(model.parser.specification.get('paths').keys())
+    def get_open_api_url_from_url(openAPI2PetriNet, uri):
+        list_of_paths = list(openAPI2PetriNet.parser.specification.get('paths').keys())
         for open_api_path in list_of_paths:
             if StringUtils.compare_uri_with_model(open_api_path, uri):
                 return open_api_path
         return None
+
 
     @staticmethod
     def get_first_diff_in_uri(model_uri, uri):

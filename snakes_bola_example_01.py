@@ -65,7 +65,7 @@ def main():
     petri_net.draw("value-0.png")
 
     import ipdb; ipdb.set_trace()
-    request_line = RequestResponseToken(*LogUtils.create_request_response_from_log(log_line))
+    request_line = RequestResponseToken(*LogUtils.create_request_response_from_log(log_line, open_api_to_petri_parser))
     id_variable = 6 # esse valor deve ser extraído do log
     # TODO: FIx: no log temos "uri":"/accounts/6" e no token temos "uri":"/accounts/{id}"
     transitions[1].fire(Substitution(request=request_line, id=id_variable ))
