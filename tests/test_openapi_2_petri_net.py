@@ -29,8 +29,6 @@ def get_juice_shop_petri_net_without_links():
     return open_api_to_petri_parser, petri_net
 
 
-# TODO: Fix: assert quantity_of_arcs == 10 deveria ser para 11
-# está como 10 porque o ultimo arco não está sendo criado automaticamente
 def test_create_petri_net_with_links(get_juice_shop_petri_net):
     # given the JuiceShop OpenApi specification
     # when we create a petri net with links
@@ -42,8 +40,7 @@ def test_create_petri_net_with_links(get_juice_shop_petri_net):
     for transition in petri_net.transition():
         quantity_of_arcs = quantity_of_arcs + len(transition.input())
         quantity_of_arcs = quantity_of_arcs + len(transition.output())
-    # assert quantity_of_arcs == 11
-    assert quantity_of_arcs == 10
+    assert quantity_of_arcs == 11
 
     # and we should have the link arc as transition 1 output
     assert 'Req-/rest/basket/{bid}' in [arc[0].name for arc in petri_net.transition()[0].output()]
